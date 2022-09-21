@@ -97,7 +97,7 @@ def PrintImageComparison(ImageDataOffset):
 ##    except:
 ##        LabelModeFeedback["text"] = "An error occurred displaying the two images"
 
-
+#List of Bytes from Image
 def Get_Bytearray_From_Image():
     with open(PathImage.get(), "rb") as image:
         return list(image.read())
@@ -115,6 +115,7 @@ offset = []
 width = []
 height = []
 
+#Validation
 def Check_Image_Data(Image_As_List):
     if (Image_As_List[0] != 66 or Image_As_List[1] != 77):
         return "This is not an bmp file!";
@@ -129,17 +130,21 @@ def Check_Image_Data(Image_As_List):
         return "Colortable is used!"
     return "";
 
+#Inputtext into List of Binarynumbers
 def Change_Text_To_Binary(text):
     return format(ord(text), 'b') # not tested yet
 
-# Convert one byte of image to 8 bit
+# Convert one byte of the image to 8 bit
 # @return list
-def Convert_Byte_To_Bit(Byte_On_Pixel):
-    pass
+def Change_Last_Bit(Byte_From_Image):
+    if Byte_From_Image % 2 == 0:
+        pass
 
+#Change last bit of image pixel binary number
 def Change_Bit_From_Byte():
     pass
 
+#Create
 def Create_New_Image():
     pass
 
@@ -148,15 +153,16 @@ def Create_New_Image():
 ###### ENTER YOUR CODE HERE ######
 def ButtonModeHideClick():
     ClearFeedbackLabels()
-    imagearray = Get_Bytearray_From_Image()
-    PrintImageComparison(imagearray)
-    check = Check_Image_Data(imagearray)
+    imagearray = Get_Bytearray_From_Image() #list of image information
+    PrintImageComparison(imagearray)#print to textfield
+    check = Check_Image_Data(imagearray)#validation for image information
     if check != "":
-        LabelModeFeedback["text"] = check
+        LabelModeFeedback["text"] = check   #Return Error if one exists
         return
+    binary_word = Change_Text_To_Binary() #list in list for change
     for i in imagearray[max(offset):]:
-
-    Convert_Byte_To_Bit()
+        Change_Last_Bit(i)
+    Change_Last_Bit()
     Change_Bit_From_Byte()
     Create_New_Image()
     PrintImageComparison()
