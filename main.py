@@ -7,6 +7,7 @@ import math
 # to comfortably open and save bitmap files
 from PIL import Image, ImageTk
 import io
+import numpy as np
 
 # An object (root) is created which represents the window.
 # Its title and full screen property are set.
@@ -97,26 +98,33 @@ def PrintImageComparison(ImageDataOffset):
 ##    except:
 ##        LabelModeFeedback["text"] = "An error occurred displaying the two images"
 
-#List of Bytes from Image
+# List of Bytes from Image
 def Get_Bytearray_From_Image():
     with open(PathImage.get(), "rb") as image:
         return list(image.read())
 
+
 bits = []
+
+
 def DecimalToBinary(value):
     if value >= 1:
         DecimalToBinary(value // 2)
-    bits.insert(value % 2)
+    bits.append(value % 2)
+
 
 def BinaryToDecimal(value):
-    pass
+    return int(value)
+
 
 offset = []
 width = []
 height = []
 
-#Validation
+
+# Validation
 def Check_Image_Data(Image_As_List):
+    global offset, width, height
     if (Image_As_List[0] != 66 or Image_As_List[1] != 77):
         return "This is not an bmp file!";
     offset = Image_As_List[10:13]
@@ -124,48 +132,98 @@ def Check_Image_Data(Image_As_List):
     height = Image_As_List[22:25]
     if Image_As_List[28] != 24:
         return "Wrong color depth!"
-    if (1,2,3) in Image_As_List[30:33]:
+    if (1, 2, 3) in Image_As_List[30:33]:
         return "I have the highground!"
     if 0 not in Image_As_List[46:49]:
         return "Colortable is used!"
     return "";
 
-#Inputtext into List of Binarynumbers
+
+# Inputtext into List of Binarynumbers
 def Change_Text_To_Binary(text):
-    return format(ord(text), 'b') # not tested yet
+    binary = []
+    for s in text:
+        binary.append(Change_Char_To_Binary(s))
+    return binary
 
-# Convert one byte of the image to 8 bit
-# @return list
-def Change_Last_Bit(Byte_From_Image):
-    if Byte_From_Image % 2 == 0:
-        pass
 
-#Change last bit of image pixel binary number
-def Change_Bit_From_Byte():
-    pass
+def Change_Char_To_Binary(char):
+    binary = bin(ord(char))[2:]
+    # need all 8 digits
+    for i in range(len(binary), 8):
+        binary = "0" + binary
+    return binary
 
-#Create
-def Create_New_Image():
-    pass
+
+def Change_Last_Bit(byte, new_bit):
+    global bits
+    bits = []
+    DecimalToBinary(byte)
+    bits[len(bits) - 1] = new_bit
+    return BinaryToDecimal(''.join(str(e) for e in bits))
+
+
+def Create_New_Image(imagearray):
+    with open(PathImage.get()[:len(PathImage.get()) - 4] + "Hiding" + PathImage.get()[len(PathImage.get()) - 4:], "wb+") as image:
+        image.write(bytes(imagearray))
+
+
+def Get_Correct_Value(value):
+    real_value = 0
+    mulitplicator = 1
+    for i in range(0, 2):
+        real_value += (value[i] * mulitplicator)
+        mulitplicator *= 256
+    return real_value
+
+
+def InsertBitsInImage(imagearray, correct_offset, correct_width, correct_height, binary_bits):
+    counter_image = 0
+    counter_word = 0
+    for byte in imagearray[correct_offset:correct_offset + len(binary_bits) + correct_height]:
+        if counter_word % (correct_width * (3 * (4 - correct_width))) == 0 and counter_image != 0:
+            counter_image += (3 * (4 - correct_width))
+        imagearray[correct_offset + counter_image] = int(
+                str(Change_Last_Bit(imagearray[correct_offset + counter_image], binary_bits[counter_word])), 2)
+        counter_image += 1
+        counter_word += 1
+        if len(binary_bits) == counter_word:
+            #imagearray.insert(correct_offset + counter_image, 0)
+            break
 
 # This function is invoked when the user presses
 # the button "Hide secret in image".
 ###### ENTER YOUR CODE HERE ######
 def ButtonModeHideClick():
+    global offset, width, height
     ClearFeedbackLabels()
-    imagearray = Get_Bytearray_From_Image() #list of image information
-    PrintImageComparison(imagearray)#print to textfield
-    check = Check_Image_Data(imagearray)#validation for image information
+    imagearray = Get_Bytearray_From_Image()  # list of image information
+    print(imagearray)
+    PrintImageComparison(imagearray)  # print to textfield
+
+    check = Check_Image_Data(imagearray)  # validation for image information
     if check != "":
-        LabelModeFeedback["text"] = check   #Return Error if one exists
+        LabelModeFeedback["text"] = check  # Return Error if one exists
         return
-    binary_word = Change_Text_To_Binary() #list in list for change
-    for i in imagearray[max(offset):]:
-        Change_Last_Bit(i)
-    Change_Last_Bit()
-    Change_Bit_From_Byte()
-    Create_New_Image()
-    PrintImageComparison()
+
+    binary_word = Change_Text_To_Binary("äl")  # list in list for change
+    binary_bits = []
+    for i in binary_word:
+        for s in i:
+            binary_bits.append(s)
+
+    correct_offset = Get_Correct_Value(offset)
+    correct_width = Get_Correct_Value(width)
+    correct_height = Get_Correct_Value(height)
+
+    if len(binary_bits) > len(imagearray[correct_offset:]) - (correct_height * 3):
+        LabelModeFeedback["text"] = "Text too long for this image!"
+        return
+    InsertBitsInImage(imagearray, correct_offset, correct_width, correct_height, binary_bits)
+    Create_New_Image(imagearray)
+    with open("./img/miniHiding.bmp", "rb") as image:
+        print(list(image.read()))
+    PrintImageComparison(imagearray)
 
 
 # This function is invoked when the user presses
@@ -214,7 +272,7 @@ TextSecret.pack(side="bottom", fill="both", expand=True, padx=25, pady=10)
 
 LabelModeCaption = ttk.Label(master=FrameMode, text="Mode")
 LabelModeCaption.pack(side="top", pady=5)
-PathImage = tk.StringVar(value="./image.bmp")
+PathImage = tk.StringVar(value="./img/mini.bmp")
 EntryImage = ttk.Entry(master=FrameMode, text=PathImage)
 EntryImage.pack(side="top", padx=25, fill="x")
 FrameImageButtons = ttk.Frame(master=FrameMode)
