@@ -123,7 +123,7 @@ def BinaryToDecimal(value):
 # Validation
 def Check_Image_Data(Image_As_List):
     global offset, width, height
-    if (Image_As_List[0] != 66 or Image_As_List[1] != 77):
+    if Image_As_List[0] != 66 or Image_As_List[1] != 77:
         return "This is not an bmp file!";
     offset = Image_As_List[10:13]
     width = Image_As_List[18:21]
@@ -145,12 +145,27 @@ def Change_Text_To_Binary(text):
     return binary
 
 
+def Change_Binary_To_Text(byte):
+    flatten_list = sum(byte, [])
+    bitstring = ""
+    for bit in flatten_list:
+        bitstring += str(bit)
+    return chr(int(bitstring, 2))
+
+
 def Change_Char_To_Binary(char):
     binary = bin(ord(char))[2:]
     # need all 8 digits
     for i in range(len(binary), 8):
         binary = "0" + binary
     return binary
+
+
+def Get_Last_Bit(byte):
+    global bits
+    bits = []
+    DecimalToBinary(byte)
+    return bits[-1:]
 
 
 def Change_Last_Bit(byte, new_bit):
@@ -181,14 +196,19 @@ def InsertBitsInImage(imagearray, correct_offset, correct_width, correct_height,
     for byte in imagearray[correct_offset:correct_offset + len(binary_bits) + correct_height]:
         if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
             counter_image += (3 * (4 - (correct_width % 4)))
-            print(counter_image)
         imagearray[correct_offset + counter_image] = int(
                 str(Change_Last_Bit(imagearray[correct_offset + counter_image], binary_bits[counter_word])), 2)
         counter_image += 1
         counter_word += 1
         if len(binary_bits) == counter_word:
-            # TODO: how should this work?!
-            #imagearray.insert(correct_offset + counter_image, 0)
+            for i in range(8):
+                if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
+                    counter_image += (3 * (4 - (correct_width % 4)))
+                imagearray[correct_offset + counter_image] = int(
+                    str(Change_Last_Bit(imagearray[correct_offset + counter_image], 0)), 2)
+                print(imagearray[correct_offset + counter_image])
+                counter_image += 1
+                counter_word += 1
             break
 
 # This function is invoked when the user presses
@@ -206,7 +226,7 @@ def ButtonModeHideClick():
         LabelModeFeedback["text"] = check  # Return Error if one exists
         return
 
-    binary_word = Change_Text_To_Binary("te")  # list in list for change
+    binary_word = Change_Text_To_Binary("äö")  # list in list for change
     binary_bits = []
     for i in binary_word:
         for s in i:
@@ -221,12 +241,23 @@ def ButtonModeHideClick():
         return
     InsertBitsInImage(imagearray, correct_offset, correct_width, correct_height, binary_bits)
     Create_New_Image(imagearray)
-    with open("./img/miniHiding.bmp", "rb") as image:
-        print(list(image.read()))
     PrintImageComparison(imagearray)
 
 
+def ReadAllBits(imagearray, correct_offset, correct_width, correct_height):
+    bits = []
+    counter_image = 0
+    counter_word = 0
+    print(imagearray[correct_offset:])
+    for byte in imagearray[correct_offset:]:
+        if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
+            counter_image += (3 * (4 - (correct_width % 4)))
 
+        bits.append(Get_Last_Bit(imagearray[correct_offset + counter_image]))
+        counter_image += 1
+        counter_word += 1
+        if len(bits) > 8 and bits[-8:] == [[0]] * 8 and len(bits) % 8 == 0:
+            return bits
 
 
 # This function is invoked when the user presses
@@ -234,8 +265,26 @@ def ButtonModeHideClick():
 ###### ENTER YOUR CODE HERE ######
 def ButtonModeDiscloseClick():
     ClearFeedbackLabels()
-    pass
+    imagearray = Get_Bytearray_From_Image()  # list of image information
+    print(imagearray)
 
+    check = Check_Image_Data(imagearray)  # validation for image information
+    if check != "":
+        LabelModeFeedback["text"] = check  # Return Error if one exists
+        return
+
+    correct_offset = Get_Correct_Value(offset)
+    correct_width = Get_Correct_Value(width)
+    correct_height = Get_Correct_Value(height)
+    bits = ReadAllBits(imagearray, correct_offset, correct_width, correct_height)[:-8]
+    print(bits)
+    words = []
+    for i in range(0, len(bits)-1, 8):
+        words.append(bits[i:i+8])
+    text = ""
+    for word in words:
+        text += Change_Binary_To_Text(word)
+    TextSecret.insert("1.0", text.rstrip())
 
 # The window is divided into three frames.
 FrameSecret = ttk.Frame(master=root)
