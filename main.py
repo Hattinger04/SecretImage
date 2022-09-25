@@ -105,6 +105,9 @@ def Get_Bytearray_From_Image():
 
 
 bits = []
+offset = []
+width = []
+height = []
 
 
 def DecimalToBinary(value):
@@ -115,11 +118,6 @@ def DecimalToBinary(value):
 
 def BinaryToDecimal(value):
     return int(value)
-
-
-offset = []
-width = []
-height = []
 
 
 # Validation
@@ -181,13 +179,15 @@ def InsertBitsInImage(imagearray, correct_offset, correct_width, correct_height,
     counter_image = 0
     counter_word = 0
     for byte in imagearray[correct_offset:correct_offset + len(binary_bits) + correct_height]:
-        if counter_word % (correct_width * (3 * (4 - correct_width))) == 0 and counter_image != 0:
-            counter_image += (3 * (4 - correct_width))
+        if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
+            counter_image += (3 * (4 - (correct_width % 4)))
+            print(counter_image)
         imagearray[correct_offset + counter_image] = int(
                 str(Change_Last_Bit(imagearray[correct_offset + counter_image], binary_bits[counter_word])), 2)
         counter_image += 1
         counter_word += 1
         if len(binary_bits) == counter_word:
+            # TODO: how should this work?!
             #imagearray.insert(correct_offset + counter_image, 0)
             break
 
@@ -206,7 +206,7 @@ def ButtonModeHideClick():
         LabelModeFeedback["text"] = check  # Return Error if one exists
         return
 
-    binary_word = Change_Text_To_Binary("äl")  # list in list for change
+    binary_word = Change_Text_To_Binary("te")  # list in list for change
     binary_bits = []
     for i in binary_word:
         for s in i:
@@ -224,6 +224,9 @@ def ButtonModeHideClick():
     with open("./img/miniHiding.bmp", "rb") as image:
         print(list(image.read()))
     PrintImageComparison(imagearray)
+
+
+
 
 
 # This function is invoked when the user presses
