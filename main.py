@@ -73,6 +73,9 @@ def ButtonSecretSaveClick():
 ###### ENTER YOUR CODE HERE ######
 def PrintImageComparison(ImageDataOffset):
     TextMode.delete("1.0", "end")
+    if len(ImageDataOffset) > 100:
+        TextMode.insert("1.0", ImageDataOffset[:100])
+        return
     TextMode.insert("1.0", ImageDataOffset)
 
 
@@ -226,7 +229,7 @@ def ButtonModeHideClick():
         LabelModeFeedback["text"] = check  # Return Error if one exists
         return
 
-    binary_word = Change_Text_To_Binary("äö")  # list in list for change
+    binary_word = Change_Text_To_Binary("ich heiße simon")  # list in list for change
     binary_bits = []
     for i in binary_word:
         for s in i:
