@@ -229,7 +229,7 @@ def ButtonModeHideClick():
         LabelModeFeedback["text"] = check  # Return Error if one exists
         return
 
-    binary_word = Change_Text_To_Binary("ich heiße simon")  # list in list for change
+    binary_word = Change_Text_To_Binary(TextSecret.get("1.0", "end")[:-1])
     binary_bits = []
     for i in binary_word:
         for s in i:
