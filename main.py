@@ -135,7 +135,7 @@ def Check_Image_Data(Image_As_List):
         return "Wrong color depth!"
     if (1, 2, 3) in Image_As_List[30:33]:
         return "I have the highground!"
-    if 0 not in Image_As_List[46:49]:
+    if [0] * 3 != Image_As_List[46:49]:
         return "Colortable is used!"
     return "";
 
@@ -251,7 +251,7 @@ def ReadAllBits(imagearray, correct_offset, correct_width, correct_height):
     bits = []
     counter_image = 0
     counter_word = 0
-    print(imagearray[correct_offset:])
+    print(imagearray)
     for byte in imagearray[correct_offset:]:
         if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
             counter_image += (3 * (4 - (correct_width % 4)))
@@ -269,7 +269,6 @@ def ReadAllBits(imagearray, correct_offset, correct_width, correct_height):
 def ButtonModeDiscloseClick():
     ClearFeedbackLabels()
     imagearray = Get_Bytearray_From_Image()  # list of image information
-    print(imagearray)
 
     check = Check_Image_Data(imagearray)  # validation for image information
     if check != "":
@@ -286,7 +285,6 @@ def ButtonModeDiscloseClick():
         bitlist = []
         for bit in reversed(bits[i:i+8]):
             bitlist.append(bit)
-        print(bitlist)
         words.append(bitlist)
     text = ""
     for word in words:
