@@ -197,15 +197,17 @@ def InsertBitsInImage(imagearray, correct_offset, correct_width, correct_height,
     counter_image = 0
     counter_word = 0
     for byte in imagearray[correct_offset:correct_offset + len(binary_bits) + correct_height]:
-        if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
+        if correct_width % 4 != 0 and counter_image != 0 and correct_width == counter_word:
+            print("up")
             counter_image += (3 * (4 - (correct_width % 4)))
+        print(imagearray[correct_offset + counter_image])
         imagearray[correct_offset + counter_image] = int(
                 str(Change_Last_Bit(imagearray[correct_offset + counter_image], binary_bits[counter_word])), 2)
         counter_image += 1
         counter_word += 1
         if len(binary_bits) == counter_word:
             for i in range(8):
-                if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
+                if correct_width % 4 != 0 and counter_image != 0 and correct_width == counter_word:
                     counter_image += (3 * (4 - (correct_width % 4)))
                 imagearray[correct_offset + counter_image] = int(
                     str(Change_Last_Bit(imagearray[correct_offset + counter_image], 0)), 2)
@@ -221,7 +223,6 @@ def ButtonModeHideClick():
     global offset, width, height
     ClearFeedbackLabels()
     imagearray = Get_Bytearray_From_Image()  # list of image information
-    print(imagearray)
     PrintImageComparison(imagearray)  # print to textfield
 
     check = Check_Image_Data(imagearray)  # validation for image information
@@ -245,7 +246,7 @@ def ButtonModeHideClick():
     InsertBitsInImage(imagearray, correct_offset, correct_width, correct_height, binary_bits)
     Create_New_Image(imagearray)
     PrintImageComparison(imagearray)
-
+    print(imagearray)
 
 def ReadAllBits(imagearray, correct_offset, correct_width, correct_height):
     bits = []
@@ -253,9 +254,8 @@ def ReadAllBits(imagearray, correct_offset, correct_width, correct_height):
     counter_word = 0
     print(imagearray)
     for byte in imagearray[correct_offset:]:
-        if correct_width % 4 != 0 and counter_word % (3 * (correct_width % 4)) == 0 and counter_image != 0:
+        if correct_width % 4 != 0 and counter_image != 0 and correct_width == counter_word:
             counter_image += (3 * (4 - (correct_width % 4)))
-
         bits.append(Get_Last_Bit(imagearray[correct_offset + counter_image]))
         counter_image += 1
         counter_word += 1
