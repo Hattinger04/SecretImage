@@ -232,7 +232,7 @@ def ButtonModeHideClick():
     binary_word = Change_Text_To_Binary(TextSecret.get("1.0", "end")[:-1])
     binary_bits = []
     for i in binary_word:
-        for s in i:
+        for s in i[::-1]:
             binary_bits.append(s)
 
     correct_offset = Get_Correct_Value(offset)
@@ -283,7 +283,11 @@ def ButtonModeDiscloseClick():
     print(bits)
     words = []
     for i in range(0, len(bits)-1, 8):
-        words.append(bits[i:i+8])
+        bitlist = []
+        for bit in reversed(bits[i:i+8]):
+            bitlist.append(bit)
+        print(bitlist)
+        words.append(bitlist)
     text = ""
     for word in words:
         text += Change_Binary_To_Text(word)
